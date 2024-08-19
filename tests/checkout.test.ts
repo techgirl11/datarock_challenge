@@ -147,5 +147,132 @@ describe("test checkout functionality without pricing rules", () => {
   
       expect(checkout.total()).toEqual(products.macBookPro.price);
     });
-    
   });
+
+  describe("multiple pricing rules should apply", () => {
+
+    let checkout: Checkout;
+  
+    beforeEach(() => {
+      const atvThreeForTwo = new ThreeForTwoDeal(products.appleTv.sku);
+      const iPadBulkDiscount = new BulkDiscount(products.sIpad.sku, BULK_DEAL_NEW_PRICE);
+      const vgaFreeWithMacBook = new FreeItemWithPurchase(products.macBookPro.sku, products.vgaAdapter);
+  
+      const pricingRules = [atvThreeForTwo, iPadBulkDiscount, vgaFreeWithMacBook];
+      checkout = new Checkout(pricingRules);
+    });
+  
+    test("Three for Two deal and Bulk discount should apply if eligible products are scanned ", () => {
+      const threeForTwoDealAtvPrice = products.appleTv.price;
+  
+      checkout.scan(products.appleTv);
+      checkout.scan(products.sIpad);
+      checkout.scan(products.vgaAdapter);
+      checkout.scan(products.sIpad);
+      checkout.scan(products.sIpad);
+      checkout.scan(products.appleTv)
+      checkout.scan(products.sIpad);
+      checkout.scan(products.appleTv);
+      checkout.scan(products.sIpad);
+  
+      expect(checkout.getCartItems().length).toBe(3);
+      
+      expect(checkout.getCartItems()[0].product.sku).toBe(products.appleTv.sku);
+      expect(checkout.getCartItems()[0].quantity).toEqual(3);
+  
+      expect(checkout.getCartItems()[1].product.sku).toBe(products.sIpad.sku);
+      expect(checkout.getCartItems()[1].quantity).toEqual(5);
+  
+      expect(checkout.getCartItems()[2].product.sku).toBe(products.vgaAdapter.sku);
+      expect(checkout.getCartItems()[2].quantity).toEqual(1);
+  
+      expect(checkout.total()).toEqual(threeForTwoDealAtvPrice * 2 + BULK_DEAL_NEW_PRICE * 5 + products.vgaAdapter.price);
+    });
+  
+    test("Free item with purchase and Bulk discount should apply if eligible products are scanned ", () => {
+      checkout.scan(products.sIpad);
+      checkout.scan(products.macBookPro);
+      checkout.scan(products.sIpad);
+      checkout.scan(products.sIpad);
+      checkout.scan(products.macBookPro);
+      checkout.scan(products.vgaAdapter);
+      checkout.scan(products.sIpad);
+      checkout.scan(products.sIpad);
+  
+      expect(checkout.getCartItems().length).toBe(3);
+  
+      expect(checkout.getCartItems()[0].product.sku).toBe(products.sIpad.sku);
+      expect(checkout.getCartItems()[0].quantity).toEqual(5);
+  
+      expect(checkout.getCartItems()[1].product.sku).toBe(products.macBookPro.sku);
+      expect(checkout.getCartItems()[1].quantity).toEqual(2);
+  
+      expect(checkout.getCartItems()[2].product.sku).toBe(products.vgaAdapter.sku);
+      expect(checkout.getCartItems()[2].quantity).toEqual(1);
+  
+      expect(checkout.total()).toEqual(BULK_DEAL_NEW_PRICE * 5 + products.macBookPro.price * 2);
+      expect(checkout.getCartItems()[2].quantity).toEqual(2);
+    });
+  
+    test("Free item with purchase and Three for Two deal should apply if eligible products are scanned ", () => {
+      const threeForTwoDealAtvPrice = products.appleTv.price;
+  
+      checkout.scan(products.macBookPro);
+      checkout.scan(products.appleTv);
+      checkout.scan(products.sIpad);
+      checkout.scan(products.appleTv);
+      checkout.scan(products.appleTv);
+  
+      expect(checkout.getCartItems().length).toBe(3);
+      
+      expect(checkout.getCartItems()[0].product.sku).toBe(products.macBookPro.sku);
+      expect(checkout.getCartItems()[0].quantity).toEqual(1);
+  
+      expect(checkout.getCartItems()[1].product.sku).toBe(products.appleTv.sku);
+      expect(checkout.getCartItems()[1].quantity).toEqual(3);
+  
+      expect(checkout.getCartItems()[2].product.sku).toBe(products.sIpad.sku);
+      expect(checkout.getCartItems()[2].quantity).toEqual(1);
+  
+      expect(checkout.total()).toEqual(Math.round((products.macBookPro.price + threeForTwoDealAtvPrice * 2 + products.sIpad.price) * 100) / 100);
+  
+      expect(checkout.getCartItems()[3].product.sku).toBe(products.vgaAdapter.sku);
+      expect(checkout.getCartItems()[3].quantity).toEqual(1);
+    });
+  
+    test("Three for Two deal, Free item with purchase and Bulk discount should apply if eligible products are scanned ", () => {
+      const threeForTwoDealAtvPrice = products.appleTv.price;
+    
+      checkout.scan(products.appleTv);
+      checkout.scan(products.appleTv)
+      checkout.scan(products.appleTv);
+      checkout.scan(products.appleTv);
+      checkout.scan(products.appleTv);
+      checkout.scan(products.appleTv);
+      checkout.scan(products.sIpad);
+      checkout.scan(products.sIpad);
+      checkout.scan(products.sIpad)
+      checkout.scan(products.sIpad);
+      checkout.scan(products.sIpad);
+      checkout.scan(products.vgaAdapter);
+      checkout.scan(products.vgaAdapter);
+      checkout.scan(products.macBookPro);
+  
+      expect(checkout.getCartItems().length).toBe(4);
+  
+      expect(checkout.getCartItems()[0].product.sku).toBe(products.appleTv.sku);
+      expect(checkout.getCartItems()[0].quantity).toEqual(6);
+  
+      expect(checkout.getCartItems()[1].product.sku).toBe(products.sIpad.sku);
+      expect(checkout.getCartItems()[1].quantity).toEqual(5);
+  
+      expect(checkout.getCartItems()[2].product.sku).toBe(products.vgaAdapter.sku);
+      expect(checkout.getCartItems()[2].quantity).toEqual(2);
+  
+      expect(checkout.getCartItems()[3].product.sku).toBe(products.macBookPro.sku);
+      expect(checkout.getCartItems()[3].quantity).toEqual(1);
+  
+      expect(checkout.total()).toEqual(Math.round((threeForTwoDealAtvPrice * 4 + BULK_DEAL_NEW_PRICE * 5 + products.vgaAdapter.price * 2 + products.macBookPro.price) * 100) / 100);
+    });
+  });
+  

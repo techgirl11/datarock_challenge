@@ -17,7 +17,8 @@ class ThreeForTwoDeal {
         if (item && item.quantity >= constants_1.MIN_DEAL_QUANTITY) {
             const discountQuantity = Math.floor(item.quantity / constants_1.MIN_DEAL_QUANTITY) * 1;
             const discountedAmount = item.product.price * (item.quantity - discountQuantity);
-            item.product.price = discountedAmount;
+            // reduce the price of the item so that MIN_DEAL_QUANTITY(nth) item is free
+            item.product.price = discountedAmount / item.quantity;
         }
     }
 }
@@ -61,7 +62,17 @@ class FreeItemWithPurchase {
                 cartItems.push({ product: this.freeProduct, quantity: 1 });
             }
             else {
-                existingVGAAdapter.product.price = 0;
+                if (macBookPro.quantity > existingVGAAdapter.quantity) {
+                    // add a free VGA Adapter for every MacBook Pro
+                    existingVGAAdapter.quantity = macBookPro.quantity;
+                }
+                else if (existingVGAAdapter.quantity > macBookPro.quantity) {
+                    // if there are more VGA Adapters than MacBook Pro then every extra adapter will be paid for
+                    existingVGAAdapter.product.price = (existingVGAAdapter.quantity - macBookPro.quantity) * existingVGAAdapter.product.price / existingVGAAdapter.quantity;
+                }
+                else {
+                    existingVGAAdapter.product.price = 0;
+                }
             }
         }
     }
