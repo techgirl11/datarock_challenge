@@ -14,3 +14,10 @@ export interface CartItem {
     product: Product;
     quantity: number;
 }
+
+/**
+ * Interface for a DiscountRule
+ */
+export interface PricingRule {
+    apply(cartItems: CartItem[]): void;
+}
