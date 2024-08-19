@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const checkout_1 = require("./checkout");
+const discount_1 = require("./discount");
+const sIpad = { sku: "ipd", name: "Super iPad", price: 549.99 };
+const appleTv = { sku: "atv", name: "Apple TV", price: 109.50 };
+const atvThreeForTwo = new discount_1.ThreeForTwoDeal(appleTv.sku);
+const checkout = new checkout_1.Checkout([atvThreeForTwo]);
+checkout.scan(sIpad);
+checkout.scan(appleTv);
+console.log(checkout.total());
